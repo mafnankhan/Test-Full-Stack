@@ -1,0 +1,51 @@
+version: "3"
+services:
+  dashboard:
+    build:
+      context: ./packages/dashboard
+      args:
+        - SKIP_BUILD=1
+    depends_on:
+      - api
+    command: npm start
+    volumes:
+      - ./packages/dashboard:/usr/src/app:cached
+      - dashboard-node_modules:/usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+  api:
+    build:
+      context: ./packages/api
+      args:
+        - SKIP_BUILD=1
+    depends_on:
+      - db
+    command: npm start
+    volumes:
+      - ./packages/api:/usr/src/app:cached
+      - api-node_modules:/usr/src/app/node_modules
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/postgres
+      - TEST_DATABASE_URL=postgres://postgres:postgres@db:5432/test
+  db:
+    image: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
+  adminer:
+    image: adminer
+    depends_on:
+      - db
+    ports:
+      - "4040:8080"
+volumes:
+  db-data:
+  dashboard-node_modules:
+  api-node_modules:
